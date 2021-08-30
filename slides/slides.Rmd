@@ -1,0 +1,197 @@
+---
+title: Causal inference without Counterfactuals
+author: "Adam Howes"
+date: "July 2021"
+output:
+  beamer_presentation:
+    fig_height: 2.5
+    fig_width: 6
+    highlight: haddock
+    includes:
+      in_header: preamble.tex
+    latex_engine: pdflatex
+  slidy_presentation:
+    highlight: haddock
+subtitle: HIV Inference Group Lab Meeting
+institute: \texttt{ath19@ic.ac.uk}
+bibliography: citations.bib
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(ggtern)
+
+whitesmoke <- "#F5F5F5"
+lightgrey <- "#D3D3D3"
+lightgold <- "#E69F00"
+
+lightblue <- "#56B4E9"
+lightgreen <- "#009E73"
+lightpink <- "#CC79A7"
+
+midblue <- "#3D9BD0"
+midgreen <- "#00855A"
+midpink <- "#B3608E"
+
+darkblue <- "#004E83"
+darkgreen <- "#00380D"
+darkpink <- "#802D5B"
+
+cbpalette <- c("#E69F00","#56B4E9","#009E73", "#F0E442","#0072B2","#D55E00","#CC79A7", "#999999")
+```
+
+##
+
+* "a model is a construct within the mental universe, through which we attempt somehow to describe certain, more or less restricted, aspects of the empirical universe"
+* Require clear understanding of the correspondence between features of the mental and empirical universe
+
+## Counterfactuals
+
+* "If $X$ had been the case, then $Y$ would have happened"
+* Examples:
+  * "If Cleopatra's nose had been shorter, the whole face of the world would have been altered" (Pascal, 1669)
+  * "If I had taken an aspirin, my headache would have gone by now" 
+* Causation can be based upon comparison of real and counterfactual outcomes
+
+## Asprin example
+
+* $Y_A$: duration of headache when I take asprin
+* $Y_{\bar A}$: duration of headache when I don't take asprin
+* The claim $\{Y_{\bar A} > y, Y_{A} < y\}$ relates jointly to the pair of values $(Y_A, Y_{\bar A})$
+* Can such claims be validated or refutred by empirical observation?
+
+## Popperian philosophy
+
+* "meaningfulness of a (purportedly) scientific theory, proposition, quantity or concept is related to the implication it has for what is or could be observed"
+* Theory should be refutable and therefore "scientific", otherwise "metaphysical"
+* Dawid argues that counterfactual theories are "essentially metaphysical"
+
+## Two types of causal query
+
+1. "I have a headache. Will it help if I take aspirin?" (effects of causes)
+2. "My headache has gone. Is it because I took aspirin?" (causes of effects)
+* "evidence relevant to query 1. often used, inappropriately, to address query 2"
+
+# Effects of causes
+
+## Comparison of treatments
+
+* $\mathcal{U}$: universe of indviduals $u$
+* Apply treatment $i$ from treatment set $\mathcal{T} = \{t, c\}$ to each individual
+  * Treatments are mutually exclusive
+* Observe response $Y$
+* Experiment: select $\mathcal{U}_i \subseteq \mathcal{U}$, apply treatment $i$ to each unit $u \in \mathcal{U}_i$ and observe responses
+
+## Note on homogeneity
+
+* Classical: individuals drawn randomly and independently from a large population
+* Bayesian: individuals are exchangeable
+* May have covariate information, could restrict attention to subpopulation having some fixed covariate values, such that that population is regarded as homogeneous
+
+## Counterfactual framework
+
+* Potential responses $\mathcal{Y} := (Y_i(u): i \in \mathcal{T}, u \in \mathcal{U})$
+* You can put this in a table with two columns like this:
+
+| $c$ | $t$ |
+| -------- | -------- |
+| $Y_c(1)$ | $Y_t(1)$ |
+| $Y_c(2)$ | $Y_t(2)$ | 
+| $\ldots$ | $\ldots$ |
+| $Y_c(u)$ | $Y_t(u)$ |
+| $\ldots$ | $\ldots$ |
+
+* For each row, it's only ever possible to observe one of the columns
+* Dawid calls this the metaphysical array $\mathcal{Y}$, and the observable responses as the physical array $\mathcal{X}$
+
+## Metaphysical model
+
+* Model $(Y_t(u), Y_c(u))$ for $u \in \mathcal{U}$ as IID from (unknown) joint $P$
+  * Marginals $P_t$, $P_c$
+* Model 1: $(Y_t(u), Y_c(u))$ multivariate normal with means $(\theta_t, \theta_c)$, common variance $\phi_Y$, and correlation $\rho$
+  * $\rho > 0$ seems reasonable, then this is a mixed model $Y_i(u) = \theta_i + \beta(u) + \gamma_i(u)$ where $(\beta(u))$ and $(\gamma_i(u))$ are mutually independent normals with mean zero and variances $\phi_\beta = \rho \phi_Y$ and $\phi_\gamma = (1 - \rho)\phi_Y$
+
+## Causal effect
+
+* Individual causal effect (ICE) 
+$$
+\tau(u) := Y_t(u) - Y_c(u)
+$$
+* Note that other comparisons are possible, like ratios, nothing particularly special about the difference
+* It's intrinsically unobservable
+* Under (1) $\tau(u) = \tau + \lambda(u)$ with $\tau = \theta_t - \theta_c$ the average causal effect (ACE), and $\lambda(u) = \gamma_t(u) - \gamma_c(u)$ the residual causal effect
+
+## Test unit
+
+* Test unit $u_0$ that we want to decide which treatment to apply
+* $Y_t(u_0)$ and $Y_c(u_0)$ are complimentary (they can't both be observed) but not (as yet) counterfactual
+
+## Physical model
+
+* Label the units receiving treatment $i$ as $u_{i1}, u_{i2}, \ldots, u_{i {n_i}}$
+* Observed response on unit $u_{ij}$ is $X_{ij} = Y_i(u_{ij})$
+
+## A Quandary
+
+* $\ldots$
+
+# Decision-analytic approach
+
+## Bayesian decision-analytic approach
+
+* The marginals $P_t$ and $P_c$ can consistently be estimated
+* Assume there is some loss function $L(\cdot)$ measuring the consequences of the decision
+* Expected loss of treatment $t$ is $E_{P_t}\{L(Y)\}$ and expected loss of treatment $c$ is $E_{P_c}\{L(Y)\}$
+  * So just chose whichever is smaller
+* In practise it wouldn't be that $P_t$ and $P_c$ are known exactly, more like $\hat P_t$ and $\hat P_c$
+
+# Fatalism
+
+## Fatalism definition
+
+* Potential responses $Y_i(u)$ when treatment $i$ is applied to unit $u$ are predetermined attributes of unit $u$
+* The unit $u$ and its properties and propensities exist independently of and are unaffected by any treatment that may be applied
+
+## Falaisitc concepts
+
+* Complier, defier, always taker, never taker
+* Stable Unit-Treatment Value Assumption (SUTVA)
+  * More broadly, response of unit $u$ could in principle depend on full treatment assignment $\xi$. SUTVA says that $Y_\xi(u)$ can be replaced by $Y_i(u)$
+  * Without assuming that $(Y_\xi(u))$ preexist then SUTVA doesn't make sense
+* Decision analysis is not fatalistic
+
+# Use of additional information
+
+## Covariates
+
+* Generic information $K$ measured on unit $u$ as $K(u)$
+* "Covariates" are observed prior to experimentation apparently
+* Until observed, $K(u)$ is a random variable
+
+## Possible situations
+
+1. Covariates on all (experimental and test) units
+  * Counterfactual analysis: model $(Y_c, Y_t)$ given $K$
+  * Decision-analytic treatment: model $Y(u_0)$ given $K(u_0)$
+2. Covariates on experimental units only
+3. Covariates on test units only
+
+## Alternatives to Additivity
+
+# Sheep and Goats
+
+# Comments
+
+## D. R. Cox
+
+## Casella and Schwartz
+
+* Unobservable quantities lead to unidentifiable models
+* Neccessary to make assumptions to make usable inferences
+* Group  level counterfactual did occur: one group did and one group didn't get the asprin
+* Likelihood principle: the experimental evidence concerning $\theta$ is contained in $l_X(\theta)$
+  * Berger and Wolpert (1984): "Because 
+
+# Thanks!
+
+## References {.allowframebreaks}
